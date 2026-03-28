@@ -1,10 +1,10 @@
 import type { FallbackStep } from "../types";
 
-const STEPS: { key: FallbackStep; label: string; emoji: string }[] = [
-  { key: "direct-friends", label: "Direct friends", emoji: "👥" },
-  { key: "extended-network", label: "Friends of friends", emoji: "🔗" },
-  { key: "co-travelers", label: "Co-travelers", emoji: "✈️" },
-  { key: "open-web", label: "Airbnb / Hotels", emoji: "🏠" },
+const STEPS: { key: FallbackStep; label: string }[] = [
+  { key: "direct-friends", label: "Direct friends" },
+  { key: "extended-network", label: "Friends of friends" },
+  { key: "co-travelers", label: "Co-travelers" },
+  { key: "open-web", label: "Airbnb & Hotels" },
 ];
 
 interface Props {
@@ -14,28 +14,25 @@ interface Props {
 
 export function FallbackProgress({ completedSteps, activeStep }: Props) {
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col divide-y divide-[#F2F2F7]">
       {STEPS.map((s, i) => {
         const done = completedSteps.includes(s.key);
         const active = activeStep === s.key;
         return (
-          <div key={s.key} className="flex items-center gap-3">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors
-                ${done ? "bg-green-500 text-white" : active ? "bg-blue-500 text-white animate-pulse" : "bg-gray-200 text-gray-500"}`}
-            >
+          <div key={s.key} className="flex items-center gap-3 px-4 py-3">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-colors ${
+              done ? "bg-black text-white" : active ? "bg-[#F2F2F7] text-black" : "bg-[#F2F2F7] text-[#C7C7CC]"
+            }`}>
               {done ? "✓" : i + 1}
             </div>
-            <div className="flex-1">
-              <span className="text-sm font-medium">
-                {s.emoji} {s.label}
-              </span>
-            </div>
+            <span className={`text-sm flex-1 ${done || active ? "text-black font-medium" : "text-[#8E8E93]"}`}>
+              {s.label}
+            </span>
             {active && (
-              <span className="text-xs text-blue-500 animate-pulse">Searching...</span>
+              <span className="text-xs text-[#8E8E93] animate-pulse">Searching...</span>
             )}
             {done && (
-              <span className="text-xs text-green-600">Found</span>
+              <span className="text-xs text-black font-medium">Done</span>
             )}
           </div>
         );

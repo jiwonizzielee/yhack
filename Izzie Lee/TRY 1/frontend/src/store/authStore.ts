@@ -18,6 +18,9 @@ export interface User {
   university: string;
   year: string;
   gender: string;
+  greekOrg: string;
+  clubs: string;
+  openToHosting: boolean;
   socials: SocialAccount[];
 }
 
@@ -54,6 +57,9 @@ export const useAuthStore = create<AuthStore>()(
             university: "",
             year: "",
             gender: "",
+            greekOrg: "",
+            clubs: "",
+            openToHosting: false,
             socials: [],
           },
         });
@@ -73,6 +79,9 @@ export const useAuthStore = create<AuthStore>()(
             university: "",
             year: "",
             gender: "",
+            greekOrg: "",
+            clubs: "",
+            openToHosting: false,
             socials: [],
           },
         });

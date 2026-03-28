@@ -25,8 +25,14 @@ export default function Results() {
     if (!currentRequest) return;
     setSelectedListing(listing);
     setDrafting(true);
-    const msg = await draftMessage(listing, currentRequest);
-    setDraftedMsg(msg);
+    try {
+      const msg = await draftMessage(listing, currentRequest);
+      setDraftedMsg(msg);
+    } catch {
+      setDraftedMsg(
+        `Hey ${listing.name}! I'm planning a trip to ${currentRequest.destination} from ${currentRequest.startDate} to ${currentRequest.endDate} and was wondering if you'd be open to hosting me? Would love to catch up!`
+      );
+    }
     setDrafting(false);
   }
 
@@ -34,45 +40,42 @@ export default function Results() {
   const allListings = stepResults.flatMap((s) => s.results);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white px-4 pt-12 pb-4 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-900">
-          {isDone ? "Results Ready" : "Agent is searching..."}
+    <div className="min-h-screen bg-[#F2F2F7] flex flex-col pb-24">
+      <div className="bg-white px-5 pt-14 pb-4 border-b border-[#E5E5EA]">
+        <h1 className="text-black text-2xl font-bold">
+          {isDone ? "Results" : "Searching..."}
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {currentRequest?.destination} · {currentRequest?.startDate} – {currentRequest?.endDate}
+        <p className="text-[#8E8E93] text-sm mt-0.5">
+          {currentRequest?.destination}
+          {currentRequest?.startDate ? ` · ${currentRequest.startDate} – ${currentRequest.endDate}` : ""}
         </p>
       </div>
 
-      <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm">
+      <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden">
         <FallbackProgress completedSteps={completedSteps} activeStep={activeStep} />
       </div>
 
-      <div className="flex flex-col gap-4 p-4 mt-2">
+      <div className="flex flex-col gap-1 px-4 mt-4">
         {stepResults.map((group) => (
-          <div key={group.step}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 px-1">
+          <div key={group.step} className="mb-3">
+            <p className="text-[#8E8E93] text-xs font-semibold uppercase tracking-wider mb-2 px-1">
               {STEP_LABELS[group.step]}
-            </h2>
+            </p>
             {group.results.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                onSelect={handleSelect}
-              />
+              <ListingCard key={listing.id} listing={listing} onSelect={handleSelect} />
             ))}
           </div>
         ))}
 
         {!isDone && allListings.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-16 text-gray-400">
-            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-            <p className="text-sm">Running all searches in parallel...</p>
+          <div className="flex flex-col items-center gap-3 py-16">
+            <div className="w-10 h-10 border-2 border-[#E5E5EA] border-t-black rounded-full animate-spin" />
+            <p className="text-[#8E8E93] text-sm">Running all searches...</p>
           </div>
         )}
 
         {isDone && allListings.length === 0 && (
-          <div className="text-center py-16 text-gray-500 text-sm">
+          <div className="text-center py-16 text-[#8E8E93] text-sm">
             No results found. Try different dates or a wider budget.
           </div>
         )}

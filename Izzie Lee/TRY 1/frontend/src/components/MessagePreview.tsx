@@ -8,28 +8,46 @@ interface Props {
 
 export function MessagePreview({ message, recipientName, onSend, onEdit, onCancel }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50">
-      <div className="w-full max-w-lg bg-white rounded-t-3xl p-6 flex flex-col gap-4">
+    <div className="fixed inset-0 bg-black/30 flex items-end justify-center z-50" onClick={onCancel}>
+      <div
+        className="w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-10 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle bar */}
+        <div className="w-10 h-1 bg-[#E5E5EA] rounded-full mx-auto -mt-1" />
+
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">AI-Drafted Message</h2>
-          <button onClick={onCancel} className="text-gray-400 text-xl">✕</button>
+          <div>
+            <h2 className="text-black font-semibold text-base">Message Draft</h2>
+            <p className="text-[#8E8E93] text-xs mt-0.5">To: {recipientName}</p>
+          </div>
+          <button type="button" onClick={onCancel} className="text-[#8E8E93] text-sm w-7 h-7 bg-[#F2F2F7] rounded-full flex items-center justify-center">
+            ✕
+          </button>
         </div>
-        <p className="text-sm text-gray-500">To: <span className="font-medium text-gray-800">{recipientName}</span></p>
-        <textarea
-          className="w-full rounded-xl border border-gray-200 p-3 text-sm resize-none min-h-[120px] focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          value={message}
-          onChange={(e) => onEdit(e.target.value)}
-        />
+
+        {/* iMessage-style bubble */}
+        <div className="bg-[#F2F2F7] rounded-2xl rounded-tl-sm p-4">
+          <textarea
+            aria-label="Message text"
+            className="w-full bg-transparent text-black text-sm resize-none focus:outline-none min-h-[100px]"
+            value={message}
+            onChange={(e) => onEdit(e.target.value)}
+          />
+        </div>
+
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={onCancel}
-            className="flex-1 rounded-xl border border-gray-200 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            className="flex-1 rounded-2xl bg-[#F2F2F7] py-3 text-sm font-semibold text-black"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onSend}
-            className="flex-1 rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="flex-1 rounded-2xl bg-black py-3 text-sm font-semibold text-white"
           >
             Send
           </button>

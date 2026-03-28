@@ -39,7 +39,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="max-w-md mx-auto min-h-screen bg-black">
+      <div className="max-w-md mx-auto min-h-screen bg-white">
         <Layout />
       </div>
     </BrowserRouter>
