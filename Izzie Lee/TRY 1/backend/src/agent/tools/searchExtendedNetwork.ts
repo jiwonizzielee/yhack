@@ -12,8 +12,9 @@ export async function searchExtendedNetwork(req: TripRequest): Promise<Listing[]
 
   if (error || !data) return [];
 
+  const city = req.destination.split(",")[0].trim().toLowerCase();
   return data
-    .filter((c) => c.users?.location?.toLowerCase().includes(req.destination.toLowerCase()))
+    .filter((c) => c.users?.location?.toLowerCase().includes(city))
     .map((c) => ({
       id: c.friend_id,
       type: "friend" as const,

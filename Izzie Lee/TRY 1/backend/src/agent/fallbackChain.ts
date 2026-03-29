@@ -2,18 +2,22 @@ import { searchPersonalNetwork } from "./tools/searchPersonalNetwork.js";
 import { searchExtendedNetwork } from "./tools/searchExtendedNetwork.js";
 import { matchTravelers } from "./tools/matchTravelers.js";
 import { searchOpenWeb } from "./tools/searchOpenWeb.js";
+import { generateAgentSummary } from "./tools/agentSummary.js";
 import { rankResults } from "./rankResults.js";
-import type { TripRequest, Listing, FallbackStep } from "../types.js";
+import type { TripRequest, Listing, FallbackStep, AgentSummary } from "../types.js";
 
 export type SearchProgress = {
   step: FallbackStep;
   results: Listing[];
+  summary?: AgentSummary;
 };
 
 export async function* runFallbackChain(
   req: TripRequest
 ): AsyncGenerator<SearchProgress> {
-  // Step 1 + 2 + open web all run in parallel
+  const collected: { step: string; results: Listing[] }[] = [];
+
+  // Steps 1, 2, and open web run in parallel for speed
   const [personal, extended, openWeb] = await Promise.all([
     searchPersonalNetwork(req),
     searchExtendedNetwork(req),
@@ -21,23 +25,36 @@ export async function* runFallbackChain(
   ]);
 
   if (personal.length > 0) {
-    yield { step: "direct-friends", results: rankResults(personal) };
+    const ranked = rankResults(personal);
+    collected.push({ step: "direct-friends", results: ranked });
+    yield { step: "direct-friends", results: ranked };
   }
 
   if (extended.length > 0) {
-    yield { step: "extended-network", results: rankResults(extended) };
+    const ranked = rankResults(extended);
+    collected.push({ step: "extended-network", results: ranked });
+    yield { step: "extended-network", results: ranked };
   }
 
-  // Step 3: co-traveler matching only if no personal network results
+  // Co-traveler matching only when no personal network found
   if (personal.length === 0 && extended.length === 0) {
     const travelers = await matchTravelers(req);
     if (travelers.length > 0) {
+      collected.push({ step: "co-travelers", results: travelers });
       yield { step: "co-travelers", results: travelers };
     }
   }
 
-  // Step 4: always show open web as fallback / additional options
+  // Always show open web as additional options
   if (openWeb.length > 0) {
-    yield { step: "open-web", results: rankResults(openWeb) };
+    const ranked = rankResults(openWeb);
+    collected.push({ step: "open-web", results: ranked });
+    yield { step: "open-web", results: ranked };
+  }
+
+  // Final step: Claude analyzes all results and gives smart recommendation
+  if (collected.length > 0) {
+    const summary = await generateAgentSummary(collected, req);
+    yield { step: "agent-summary", results: [], summary };
   }
 }

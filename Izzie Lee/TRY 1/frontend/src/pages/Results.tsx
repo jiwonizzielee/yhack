@@ -6,16 +6,21 @@ import { MessagePreview } from "../components/MessagePreview";
 import { draftMessage } from "../lib/api";
 import type { FallbackStep, Listing } from "../types";
 
-const STEP_LABELS: Record<FallbackStep, string> = {
+const STEP_LABELS: Record<Exclude<FallbackStep, "agent-summary" | "done">, string> = {
   "direct-friends": "Direct Friends",
   "extended-network": "Friends of Friends",
   "co-travelers": "Co-Travelers",
   "open-web": "Airbnb & Hotels",
-  done: "Done",
+};
+
+const CONFIDENCE_COLORS = {
+  high: "bg-green-50 border-green-200 text-green-800",
+  medium: "bg-yellow-50 border-yellow-200 text-yellow-800",
+  low: "bg-red-50 border-red-200 text-red-800",
 };
 
 export default function Results() {
-  const { stepResults, activeStep, isDone, currentRequest } = useTripStore();
+  const { stepResults, activeStep, isDone, currentRequest, agentSummary } = useTripStore();
 
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [draftedMsg, setDraftedMsg] = useState("");
@@ -55,11 +60,46 @@ export default function Results() {
         <FallbackProgress completedSteps={completedSteps} activeStep={activeStep} />
       </div>
 
+      {/* AI Agent Summary Card */}
+      {agentSummary && (
+        <div className="mx-4 mt-4 rounded-2xl bg-black text-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">AI</div>
+            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">AI Recommendation</p>
+            <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full border ${CONFIDENCE_COLORS[agentSummary.confidence]}`}>
+              {agentSummary.confidence} confidence
+            </span>
+          </div>
+
+          {agentSummary.bestOptionName && (
+            <p className="text-white font-semibold text-base mb-1">
+              Best pick: {agentSummary.bestOptionName}
+            </p>
+          )}
+          <p className="text-white/80 text-sm leading-relaxed mb-3">
+            {agentSummary.reasoning}
+          </p>
+
+          <div className="border-t border-white/10 pt-3">
+            <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Next Steps</p>
+            <ol className="flex flex-col gap-1.5">
+              {agentSummary.actionSteps.map((step, i) => (
+                <li key={i} className="flex gap-2 text-sm text-white/80">
+                  <span className="text-white/40 shrink-0">{i + 1}.</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
+
+      {/* Listings by step */}
       <div className="flex flex-col gap-1 px-4 mt-4">
         {stepResults.map((group) => (
           <div key={group.step} className="mb-3">
             <p className="text-[#8E8E93] text-xs font-semibold uppercase tracking-wider mb-2 px-1">
-              {STEP_LABELS[group.step]}
+              {STEP_LABELS[group.step as keyof typeof STEP_LABELS] ?? group.step}
             </p>
             {group.results.map((listing) => (
               <ListingCard key={listing.id} listing={listing} onSelect={handleSelect} />

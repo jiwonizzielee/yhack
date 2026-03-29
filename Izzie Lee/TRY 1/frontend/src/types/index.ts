@@ -3,6 +3,7 @@ export type FallbackStep =
   | "extended-network"
   | "co-travelers"
   | "open-web"
+  | "agent-summary"
   | "done";
 
 export type ListingType = "friend" | "co-traveler" | "airbnb" | "hotel";
@@ -20,6 +21,14 @@ export interface Listing {
   available: boolean;
 }
 
+export interface AgentSummary {
+  bestOptionId: string | null;
+  bestOptionName: string | null;
+  reasoning: string;
+  actionSteps: string[];
+  confidence: "high" | "medium" | "low";
+}
+
 export interface TripRequest {
   userId: string;
   destination: string;
@@ -32,5 +41,6 @@ export interface TripRequest {
 export interface SearchProgress {
   step: FallbackStep;
   results?: Listing[];
+  summary?: AgentSummary;
   error?: string;
 }

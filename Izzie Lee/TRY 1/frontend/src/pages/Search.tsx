@@ -4,6 +4,9 @@ import { useTripStore } from "../store/tripStore";
 import { searchHousing } from "../lib/api";
 import type { TripRequest, Listing, FallbackStep } from "../types";
 
+// Must match the demo user seeded in backend/scripts/seed.ts
+const DEMO_USER_ID = "a1b2c3d4-0000-0000-0000-000000000001";
+
 const US_STATES = [
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
   "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
@@ -170,7 +173,7 @@ function getMockResults(destination: string): Array<{ step: FallbackStep; result
 
 export default function Search() {
   const navigate = useNavigate();
-  const { setRequest, addStepResult, setDone } = useTripStore();
+  const { setRequest, addStepResult, setAgentSummary, setDone } = useTripStore();
 
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -220,7 +223,7 @@ export default function Search() {
     ].filter(Boolean);
 
     const req: TripRequest = {
-      userId: "demo-user",
+      userId: DEMO_USER_ID,
       destination,
       startDate,
       endDate,
@@ -236,7 +239,10 @@ export default function Search() {
       for await (const progress of searchHousing(req)) {
         if (progress.step === "done" || progress.error) {
           setDone();
-        } else if (progress.results) {
+        } else if (progress.step === "agent-summary" && progress.summary) {
+          setAgentSummary(progress.summary);
+          gotResults = true;
+        } else if (progress.results && progress.results.length > 0) {
           addStepResult({ step: progress.step, results: progress.results });
           gotResults = true;
         }

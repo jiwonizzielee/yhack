@@ -11,9 +11,10 @@ export async function searchPersonalNetwork(req: TripRequest): Promise<Listing[]
 
   if (error || !data) return [];
 
-  // Filter by destination proximity and hosting availability (mocked for MVP)
+  // Match on city name (first part of destination) to handle "New York, New York" vs "New York, NY"
+  const city = req.destination.split(",")[0].trim().toLowerCase();
   return data
-    .filter((c) => c.users?.location?.toLowerCase().includes(req.destination.toLowerCase()))
+    .filter((c) => c.users?.location?.toLowerCase().includes(city))
     .map((c) => ({
       id: c.friend_id,
       type: "friend" as const,

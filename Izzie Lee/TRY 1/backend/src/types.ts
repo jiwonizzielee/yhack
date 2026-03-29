@@ -2,7 +2,8 @@ export type FallbackStep =
   | "direct-friends"
   | "extended-network"
   | "co-travelers"
-  | "open-web";
+  | "open-web"
+  | "agent-summary";
 
 export type ListingType = "friend" | "co-traveler" | "airbnb" | "hotel";
 
@@ -17,6 +18,14 @@ export interface Listing {
   description: string;
   url?: string;
   available: boolean;
+}
+
+export interface AgentSummary {
+  bestOptionId: string | null;
+  bestOptionName: string | null;
+  reasoning: string;
+  actionSteps: string[];
+  confidence: "high" | "medium" | "low";
 }
 
 export interface TripRequest {

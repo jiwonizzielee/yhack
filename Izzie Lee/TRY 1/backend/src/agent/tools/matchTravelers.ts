@@ -3,10 +3,11 @@ import type { TripRequest, Listing } from "../../types.js";
 
 export async function matchTravelers(req: TripRequest): Promise<Listing[]> {
   // Find other users traveling to the same destination in the same date range
+  const city = req.destination.split(",")[0].trim();
   const { data, error } = await supabase
     .from("trips")
     .select("*, users(*)")
-    .eq("destination", req.destination)
+    .ilike("destination", `%${city}%`)
     .neq("user_id", req.userId)
     .eq("looking_to_split", true)
     .gte("end_date", req.startDate)
