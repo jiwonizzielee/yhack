@@ -33,8 +33,8 @@ export default function Login() {
         await signup(name, email, password);
         navigate("/onboarding");
       }
-    } catch {
-      setError("Something went wrong. Try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
@@ -116,22 +116,14 @@ export default function Login() {
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          onClick={async () => {
-            setLoading(true);
-            await login("demo@college.edu", "demo");
-            navigate("/onboarding");
-          }}
+          onClick={() => setError("Instagram login coming soon — use email for now.")}
           className="flex items-center justify-center gap-2 w-full bg-[#F2F2F7] rounded-2xl py-3.5 text-black text-sm font-semibold"
         >
           Continue with Instagram
         </button>
         <button
           type="button"
-          onClick={async () => {
-            setLoading(true);
-            await login("demo@college.edu", "demo");
-            navigate("/onboarding");
-          }}
+          onClick={() => setError("Snapchat login coming soon — use email for now.")}
           className="flex items-center justify-center gap-2 w-full bg-[#F2F2F7] rounded-2xl py-3.5 text-black text-sm font-semibold"
         >
           Continue with Snapchat

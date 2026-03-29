@@ -42,15 +42,22 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isLoggedIn: false,
 
-      login: async (email, _password) => {
-        // Mock auth — swap with Supabase auth in production
-        await new Promise((r) => setTimeout(r, 800));
+      login: async (email, password) => {
+        const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+        const res = await fetch(`${BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Login failed");
+        localStorage.setItem("token", data.token);
         set({
           isLoggedIn: true,
           user: {
-            id: "demo-" + Date.now(),
-            name: email.split("@")[0],
-            email,
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
             avatarUrl: null,
             location: "",
             bio: "",
@@ -65,14 +72,22 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      signup: async (name, email, _password) => {
-        await new Promise((r) => setTimeout(r, 1000));
+      signup: async (name, email, password) => {
+        const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+        const res = await fetch(`${BASE}/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Signup failed");
+        localStorage.setItem("token", data.token);
         set({
           isLoggedIn: true,
           user: {
-            id: "demo-" + Date.now(),
-            name,
-            email,
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
             avatarUrl: null,
             location: "",
             bio: "",
@@ -87,7 +102,7 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      logout: () => set({ user: null, isLoggedIn: false }),
+      logout: () => { localStorage.removeItem("token"); set({ user: null, isLoggedIn: false }); },
 
       updateProfile: (updates) =>
         set((s) => ({

@@ -4,6 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import agentRouter from "./routes/agent.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/agent", agentRouter);
+app.use("/auth", authRouter);
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 // Serve frontend

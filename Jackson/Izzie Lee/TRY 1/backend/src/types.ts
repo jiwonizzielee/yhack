@@ -25,5 +25,5 @@ export interface TripRequest {
   startDate: string;  // ISO date
   endDate: string;
   budget?: number;    // max USD/night
-  notes?: string;
+  notes: string;
 }

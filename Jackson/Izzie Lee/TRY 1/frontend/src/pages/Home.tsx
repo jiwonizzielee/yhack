@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useTripStore, type SavedTrip, type TripStatus } from "../store/tripStore";
+import { searchHousing } from "../lib/api";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -25,7 +26,7 @@ const ALL_STATUSES: TripStatus[] = ["Searching", "Found", "Confirmed", "Cancelle
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { savedTrips, updateTrip, deleteTrip } = useTripStore();
+  const { savedTrips, updateTrip, deleteTrip, setRequest, addStepResult, setDone, reset } = useTripStore();
   const totalMutuals = user?.socials.reduce((a, s) => a + s.mutualCount, 0) ?? 0;
 
   const [trending, setTrending] = useState<TrendingEvent[]>([]);
@@ -34,6 +35,27 @@ export default function Home() {
   // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<SavedTrip>>({});
+
+  async function rerunTrip(trip: SavedTrip) {
+    const req = {
+      userId: "demo-user",
+      destination: trip.destination,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      budget: trip.budget,
+    };
+    reset();
+    setRequest(req);
+    navigate("/results");
+    try {
+      for await (const progress of searchHousing(req)) {
+        if (progress.step === "done" || progress.error) setDone();
+        else if (progress.results) addStepResult({ step: progress.step, results: progress.results });
+      }
+    } catch {
+      setDone();
+    }
+  }
 
   useEffect(() => {
     fetch(`${BASE}/agent/trending`)
@@ -203,7 +225,13 @@ export default function Home() {
                   ) : (
                     <div className="px-4 py-3.5 flex items-center justify-between">
                       <div>
-                        <p className="text-black font-semibold text-sm">{trip.destination}</p>
+                        <button
+                          type="button"
+                          onClick={() => rerunTrip(trip)}
+                          className="text-black font-semibold text-sm text-left hover:underline"
+                        >
+                          {trip.destination} →
+                        </button>
                         <p className="text-[#8E8E93] text-xs mt-0.5">
                           {trip.startDate} – {trip.endDate}
                           {trip.budget ? ` · $${trip.budget}/night` : ""}

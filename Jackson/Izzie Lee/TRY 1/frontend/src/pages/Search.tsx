@@ -18,17 +18,59 @@ const US_STATES = [
   "Washington DC", "West Virginia", "Wisconsin", "Wyoming",
 ];
 
-const MAJOR_CITIES = [
-  "Atlanta", "Austin", "Baltimore", "Boston", "Charlotte", "Chicago",
-  "Cincinnati", "Cleveland", "Columbus", "Dallas", "Denver", "Detroit",
-  "Houston", "Indianapolis", "Jacksonville", "Kansas City", "Las Vegas",
-  "Los Angeles", "Louisville", "Memphis", "Miami", "Milwaukee",
-  "Minneapolis", "Nashville", "New Orleans", "New York", "Oakland",
-  "Oklahoma City", "Orlando", "Philadelphia", "Phoenix", "Pittsburgh",
-  "Portland", "Raleigh", "Richmond", "Sacramento", "Salt Lake City",
-  "San Antonio", "San Diego", "San Francisco", "San Jose", "Seattle",
-  "St. Louis", "Tampa", "Tucson", "Washington DC",
-];
+const CITIES_BY_STATE: Record<string, string[]> = {
+  "Alabama": ["Birmingham", "Huntsville", "Mobile", "Montgomery", "Tuscaloosa"],
+  "Alaska": ["Anchorage", "Fairbanks", "Juneau"],
+  "Arizona": ["Chandler", "Gilbert", "Glendale", "Mesa", "Phoenix", "Scottsdale", "Tempe", "Tucson"],
+  "Arkansas": ["Fayetteville", "Fort Smith", "Little Rock"],
+  "California": ["Fresno", "Long Beach", "Los Angeles", "Oakland", "Sacramento", "San Diego", "San Francisco", "San Jose", "Santa Barbara", "Santa Cruz"],
+  "Colorado": ["Aurora", "Boulder", "Colorado Springs", "Denver", "Fort Collins"],
+  "Connecticut": ["Bridgeport", "Hartford", "New Haven", "Stamford"],
+  "Delaware": ["Dover", "Newark", "Wilmington"],
+  "Florida": ["Fort Lauderdale", "Gainesville", "Jacksonville", "Miami", "Orlando", "Tallahassee", "Tampa"],
+  "Georgia": ["Athens", "Atlanta", "Augusta", "Savannah"],
+  "Hawaii": ["Hilo", "Honolulu", "Kailua"],
+  "Idaho": ["Boise", "Idaho Falls", "Nampa"],
+  "Illinois": ["Aurora", "Chicago", "Champaign", "Naperville", "Rockford", "Springfield"],
+  "Indiana": ["Bloomington", "Fort Wayne", "Indianapolis", "South Bend"],
+  "Iowa": ["Cedar Rapids", "Des Moines", "Iowa City"],
+  "Kansas": ["Kansas City", "Lawrence", "Manhattan", "Wichita"],
+  "Kentucky": ["Lexington", "Louisville", "Owensboro"],
+  "Louisiana": ["Baton Rouge", "Lafayette", "New Orleans", "Shreveport"],
+  "Maine": ["Bangor", "Portland"],
+  "Maryland": ["Annapolis", "Baltimore", "College Park", "Frederick"],
+  "Massachusetts": ["Boston", "Cambridge", "Lowell", "Springfield", "Worcester"],
+  "Michigan": ["Ann Arbor", "Detroit", "East Lansing", "Grand Rapids", "Lansing"],
+  "Minnesota": ["Duluth", "Minneapolis", "Rochester", "St. Paul"],
+  "Mississippi": ["Biloxi", "Jackson", "Oxford"],
+  "Missouri": ["Columbia", "Kansas City", "Springfield", "St. Louis"],
+  "Montana": ["Billings", "Bozeman", "Missoula"],
+  "Nebraska": ["Lincoln", "Omaha"],
+  "Nevada": ["Henderson", "Las Vegas", "Reno"],
+  "New Hampshire": ["Concord", "Manchester", "Portsmouth"],
+  "New Jersey": ["Jersey City", "Newark", "Princeton", "Trenton"],
+  "New Mexico": ["Albuquerque", "Las Cruces", "Santa Fe"],
+  "New York": ["Albany", "Buffalo", "New York City", "Rochester", "Syracuse"],
+  "North Carolina": ["Asheville", "Chapel Hill", "Charlotte", "Durham", "Greensboro", "Raleigh", "Wilmington"],
+  "North Dakota": ["Bismarck", "Fargo", "Grand Forks"],
+  "Ohio": ["Akron", "Cincinnati", "Cleveland", "Columbus", "Dayton", "Toledo"],
+  "Oklahoma": ["Norman", "Oklahoma City", "Stillwater", "Tulsa"],
+  "Oregon": ["Eugene", "Portland", "Salem"],
+  "Pennsylvania": ["Allentown", "Philadelphia", "Pittsburgh", "State College"],
+  "Rhode Island": ["Providence", "Warwick"],
+  "South Carolina": ["Charleston", "Columbia", "Greenville"],
+  "South Dakota": ["Rapid City", "Sioux Falls"],
+  "Tennessee": ["Chattanooga", "Knoxville", "Memphis", "Nashville"],
+  "Texas": ["Austin", "Dallas", "El Paso", "Fort Worth", "Houston", "Lubbock", "San Antonio", "Waco"],
+  "Utah": ["Ogden", "Provo", "Salt Lake City"],
+  "Vermont": ["Burlington", "Montpelier"],
+  "Virginia": ["Alexandria", "Arlington", "Charlottesville", "Norfolk", "Richmond", "Virginia Beach"],
+  "Washington": ["Bellevue", "Seattle", "Spokane", "Tacoma"],
+  "Washington DC": ["Washington DC"],
+  "West Virginia": ["Charleston", "Huntington", "Morgantown"],
+  "Wisconsin": ["Green Bay", "Madison", "Milwaukee"],
+  "Wyoming": ["Casper", "Cheyenne", "Laramie"],
+};
 
 const UNIVERSITIES = [
   "Arizona State University", "Auburn University", "Barnard College",
@@ -187,12 +229,12 @@ export default function Search() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // City autocomplete
-  const [cityOpen, setCityOpen] = useState(false);
+  // City autocomplete — filtered by selected state
   const cityRef = useRef<HTMLDivElement>(null);
+  const citiesForState = state ? (CITIES_BY_STATE[state] ?? []) : [];
   const filteredCities = city.length >= 1
-    ? MAJOR_CITIES.filter((c) => c.toLowerCase().startsWith(city.toLowerCase())).slice(0, 5)
-    : [];
+    ? citiesForState.filter((c: string) => c.toLowerCase().startsWith(city.toLowerCase())).slice(0, 8)
+    : citiesForState.slice(0, 8);
 
   // University autocomplete
   const [uniOpen, setUniOpen] = useState(false);
@@ -203,7 +245,7 @@ export default function Search() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityOpen(false);
+      // city dropdown removed
       if (uniRef.current && !uniRef.current.contains(e.target as Node)) setUniOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
@@ -303,42 +345,14 @@ export default function Search() {
         )}
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-[#F2F2F7]">
 
-          {/* City autocomplete */}
-          <div ref={cityRef} className="relative px-4 py-3.5">
-            <label className="text-[#8E8E93] text-xs font-medium block mb-1">City</label>
-            <input
-              required
-              type="text"
-              placeholder="Boston, Chicago, Austin..."
-              className="w-full bg-transparent text-black placeholder-[#C7C7CC] text-sm focus:outline-none"
-              value={city}
-              onChange={(e) => { setCity(e.target.value); setCityOpen(true); }}
-              onFocus={() => setCityOpen(true)}
-            />
-            {cityOpen && filteredCities.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-20 bg-white border border-[#E5E5EA] rounded-2xl shadow-lg overflow-hidden mt-1">
-                {filteredCities.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); setCity(c); setCityOpen(false); }}
-                    className="w-full text-left px-4 py-3 text-black text-sm hover:bg-[#F2F2F7] border-b border-[#F2F2F7] last:border-b-0"
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* State dropdown */}
+          {/* State dropdown — first */}
           <div className="px-4 py-3.5">
             <label className="text-[#8E8E93] text-xs font-medium block mb-1">State</label>
             <select
               required
               aria-label="State"
               value={state}
-              onChange={(e) => setState(e.target.value)}
+              onChange={(e) => { setState(e.target.value); setCity(""); }}
               className="w-full bg-transparent text-black text-sm focus:outline-none appearance-none"
             >
               <option value="" disabled>Select a state...</option>
@@ -347,6 +361,45 @@ export default function Search() {
               ))}
             </select>
           </div>
+
+          {/* City — shown after state is selected */}
+          {state && (
+            <div className="px-4 py-3.5">
+              <label className="text-[#8E8E93] text-xs font-medium block mb-2">City</label>
+              {/* Search filter */}
+              <div ref={cityRef} className="relative mb-3">
+                <input
+                  required
+                  type="text"
+                  placeholder={`Search cities in ${state}...`}
+                  className="w-full bg-[#F2F2F7] rounded-xl px-3 py-2 text-black placeholder-[#C7C7CC] text-sm focus:outline-none"
+                  value={city}
+                  onChange={(e) => { setCity(e.target.value); }}
+                />
+                {city && (
+                  <button type="button" onClick={() => setCity("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E8E93] text-xs">✕</button>
+                )}
+              </div>
+              {/* City chips grid */}
+              <div className="flex flex-wrap gap-2">
+                {filteredCities.map((c: string) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCity(c)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      city === c
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-[#E5E5EA] hover:border-black"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Dates */}
@@ -361,17 +414,22 @@ export default function Search() {
                 aria-label="Check in date"
                 className="w-full bg-transparent text-black text-sm focus:outline-none"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  if (endDate && e.target.value >= endDate) setEndDate("");
+                }}
               />
             </div>
             <div className="px-4 py-3.5">
-              <label className="text-[#8E8E93] text-xs font-medium block mb-1">Check out</label>
+              <label className={`text-xs font-medium block mb-1 ${endDate && startDate && endDate <= startDate ? "text-red-500" : "text-[#8E8E93]"}`}>Check out</label>
               <input
                 required
                 type="date"
                 aria-label="Check out date"
                 className="w-full bg-transparent text-black text-sm focus:outline-none"
                 value={endDate}
+                min={startDate ? (() => { const d = new Date(startDate); d.setDate(d.getDate() + 1); return d.toISOString().split("T")[0]; })() : new Date().toISOString().split("T")[0]}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
@@ -474,10 +532,17 @@ export default function Search() {
             <input
               type="number"
               placeholder="Any (leave blank)"
+              min="0"
               className="w-full bg-transparent text-black placeholder-[#C7C7CC] text-sm focus:outline-none"
               value={budget}
-              onChange={(e) => setBudget(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || Number(val) >= 0) setBudget(val);
+              }}
             />
+            {budget !== "" && Number(budget) < 0 && (
+              <p className="text-red-500 text-xs mt-1">Budget cannot be negative</p>
+            )}
           </div>
 
           {/* Notes */}
